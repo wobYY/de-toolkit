@@ -1,2 +1,2 @@
-# de-utils
-Utilities that I would use daily in the field of Data Engineering
+# de-toolkit
+Toolkit of different tools that you could use for your DE projects.
