@@ -1,0 +1,29 @@
+[project]
+name = "de-toolkit"
+version = "0.1.0"
+description = "Toolkit that could be useful for your start with Data Engineering" 
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.ruff]
+line-length = 120
+indent-width = 4
+
+[tool.ruff.format]
+docstring-code-format = true
+quote-style = "double"
+
+[tool.ruff.lint]
+select = ["D"]
+ignore = ["D417"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+    "ruff>=0.11.2",
+    "tox>=4.25.0",
+]
