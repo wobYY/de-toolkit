@@ -1,0 +1,3 @@
+--platform ubuntu-latest=catthehacker/ubuntu:act-latest
+--secret-file .env
+--rm
