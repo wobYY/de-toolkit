@@ -1,0 +1,22 @@
+name: Lint code
+
+on:
+  pull_request:
+    types: [ready_for_review, opened, synchronize, reopened, review_requested]
+    branches:
+      - main
+    paths:
+      - "**.py"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+      
+      - name: Lint code
+        run: |
+          uv run ruff check --fix --output-format github
