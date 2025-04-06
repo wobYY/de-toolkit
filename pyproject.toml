@@ -1,10 +1,18 @@
 [project]
-name = "de-toolkit"
+name = "de_toolkit"
 version = "0.1.0"
 description = "Toolkit that could be useful for your start with Data Engineering" 
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "gspread>=6.2.0",
+    "httpx>=0.28.1",
+    "pandas>=2.2.3",
+    "pendulum>=3.0.0",
+    "python-dotenv>=1.1.0",
+    "tenacity>=9.1.2",
+    "vcrpy>=7.0.0",
+]
 
 [tool.ruff]
 line-length = 100
@@ -17,14 +25,19 @@ quote-style = "double"
 [tool.ruff.lint]
 select = ["D"]
 ignore = ["D417"]
+exclude = ["tests/*", "__init__.py"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
 [dependency-groups]
 dev = [
+    "icecream>=2.1.4",
     "pre-commit>=4.2.0",
     "pytest>=8.3.5",
     "ruff>=0.11.2",
     "tox>=4.25.0",
+]
+testing = [
+    "ipykernel>=6.29.5",
 ]
