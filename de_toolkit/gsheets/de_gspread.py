@@ -115,6 +115,7 @@ class DtkGspread:
         stop=stop_after_attempt(5),
         reraise=True,
         # Only if it's valid gspread errors
+        # TODO: Possible improvement: Add a custom method that checks the error code and retries based on that so we don't retry on every error
         retry=(
             retry_if_not_exception_type(ValueError)
             & retry_if_not_exception_type(gspread.SpreadsheetNotFound)
