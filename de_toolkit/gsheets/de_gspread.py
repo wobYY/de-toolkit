@@ -44,8 +44,8 @@ class DtkGspread:
         # multiple accounts which helps with rate limiting trumendously
         self.logged_in_clients: list[gspread.Client] = []
 
-        # Set the selected credential to None
-        self.__selected_credential: int | None = None
+        # Set the selected client to None
+        self.__selected_client: int | None = None
 
         logging.debug("Selected credential type: %s", ic(credentials_type))
         if credentials_type == "oauth":
@@ -60,8 +60,8 @@ class DtkGspread:
             # Login with the service accounts
             self._retrieve_service_accounts(credentials, credential_scopes)
 
-        # Set the credentials cache
-        self.__credentials_cache: list[gspread.Client] = self.logged_in_clients.copy()
+        # Set the clients cache
+        self.__clients_cache: list[gspread.Client] = self.logged_in_clients.copy()
 
     def _retrieve_service_accounts(
         self, credentials: str | list[str], credential_scopes: list[str]
@@ -92,23 +92,23 @@ class DtkGspread:
             raise ValueError("Invalid credential!")
 
     @property
-    def __credential(self) -> gspread.Client:
-        """Retrieve a random credential from the list of logged in clients."""
+    def client(self) -> gspread.Client:
+        """Retrieve a random client from the list of logged in clients."""
         # Check if cache is empty
-        if ic(len(self.__credentials_cache)) == 0:
+        if ic(len(self.__clients_cache)) == 0:
             logging.debug(ic("Cache is empty, repopulating with logged in clients"))
-            self.__credentials_cache = self.logged_in_clients.copy()
+            self.__clients_cache = self.logged_in_clients.copy()
 
         # Get a random index
-        self.__selected_credential = random.randint(0, len(self.__credentials_cache) - 1)
+        self.__selected_client = random.randint(0, len(self.__clients_cache) - 1)
 
-        # Get the selected credential
-        selected_credential = self.__credentials_cache[self.__selected_credential]
+        # Get the selected client
+        selected_client = self.__clients_cache[self.__selected_client]
 
-        # Remove the selected credential from the __credentials_cache
-        self.__credentials_cache.pop(self.__selected_credential)
+        # Remove the selected client from the __clients_cache
+        self.__clients_cache.pop(self.__selected_client)
 
-        return selected_credential
+        return selected_client
 
     @retry(
         wait=wait_exponential(multiplier=2, min=2, max=30),
@@ -138,17 +138,17 @@ class DtkGspread:
         # If spreadsheet_id is provided, use it
         if spreadsheet_id:
             logging.debug("Spreadsheet ID provided: %s", ic(spreadsheet_id))
-            return self.__credential.open_by_key(spreadsheet_id)
+            return self.client.open_by_key(spreadsheet_id)
 
         # If spreadsheet_name is provided, use it
         if spreadsheet_name:
             logging.debug("Spreadsheet name provided: %s", ic(spreadsheet_name))
-            return self.__credential.open_by_url(spreadsheet_name)
+            return self.client.open_by_url(spreadsheet_name)
 
         # If spreadsheet_url is provided, use it
         if spreadsheet_url:
             logging.debug("Spreadsheet URL provided: %s", ic(spreadsheet_url))
-            return self.__credential.open_by_url(spreadsheet_url)
+            return self.client.open_by_url(spreadsheet_url)
 
         # If none of the above are provided, raise an error
         raise ValueError("No spreadsheet ID, name, or URL provided.")
