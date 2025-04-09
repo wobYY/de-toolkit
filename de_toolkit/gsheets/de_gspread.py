@@ -93,7 +93,7 @@ class DtkGspread:
 
     @property
     def client(self) -> gspread.Client:
-        """Retrieve a random client from the list of logged in clients."""
+        """Retrieve a random client from the list of logged in clients. This will allow you to do custom operations on the client."""
         # Check if cache is empty
         if ic(len(self.__clients_cache)) == 0:
             logging.debug(ic("Cache is empty, repopulating with logged in clients"))
