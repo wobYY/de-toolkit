@@ -114,7 +114,12 @@ class DtkGspread:
         wait=wait_exponential(multiplier=2, min=2, max=30),
         stop=stop_after_attempt(5),
         reraise=True,
-        retry=retry_if_not_exception_type(ValueError),  # Only if it's gspread errors
+        # Only if it's valid gspread errors
+        retry=(
+            retry_if_not_exception_type(ValueError)
+            & retry_if_not_exception_type(gspread.SpreadsheetNotFound)
+            & retry_if_not_exception_type(gspread.NoValidUrlKeyFound)
+        ),
     )
     def __get_spreadsheet(
         self, spreadsheet_id: str = None, spreadsheet_name: str = None, spreadsheet_url: str = None
@@ -147,8 +152,8 @@ class DtkGspread:
         # If none of the above are provided, raise an error
         raise ValueError("No spreadsheet ID, name, or URL provided.")
 
-    def get_spreadsheet(self, *args, **kwargs) -> gspread.Spreadsheet:
-        """Get a spreadsheet by ID, name, or URL.
+    def get_spreadsheet(self, spreadsheet_id, **kwargs) -> gspread.Spreadsheet:
+        """Get a spreadsheet by ID, name, or URL (provide one).
 
         Args:
             spreadsheet_id: The ID of the spreadsheet.
@@ -158,4 +163,4 @@ class DtkGspread:
         Returns:
             The spreadsheet object.
         """
-        return self.__get_spreadsheet(*args, **kwargs)
+        return self.__get_spreadsheet(spreadsheet_id, **kwargs)
