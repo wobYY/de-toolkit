@@ -169,6 +169,29 @@ class DtkGspread:
         """
         return self.__get_spreadsheet(spreadsheet_id, spreadsheet_name, spreadsheet_url)
 
+    def __verify_spreadsheet_was_provided(
+        self, provided_spreadsheet: gspread.Spreadsheet | str, assume_spreadsheet_id: bool = True
+    ) -> gspread.Spreadsheet:
+        """Verify spreadsheet was provided and return the spreadsheet object if it wasn't.
+
+        Args:
+            provided_spreadsheet (gspread.Spreadsheet | str): The spreadsheet object or, spreadsheet ID or spreadsheet name.
+            assume_spreadsheet_id (bool): Whether to assume the provided "spreadsheet", when it's a string, is a spreadsheet ID or spreadsheet name. Defaults to True.
+
+        Returns:
+            The spreadsheet object.
+        """
+        if isinstance(provided_spreadsheet, gspread.Spreadsheet):
+            return provided_spreadsheet
+
+        # If assume_spreadsheet_id is True, assume the provided "spreadsheet"
+        # is a spreadsheet ID
+        if assume_spreadsheet_id:
+            return self.get_spreadsheet(spreadsheet_id=provided_spreadsheet)
+
+        # Otherwise assume the provided "spreadsheet" is a spreadsheet name
+        return self.get_spreadsheet(spreadsheet_name=provided_spreadsheet)
+
     @retry(
         wait=wait_exponential(multiplier=2, min=2, max=30),
         stop=stop_after_attempt(5),
@@ -219,20 +242,49 @@ class DtkGspread:
 
     def get_worksheet(
         self,
-        spreadsheet: gspread.Spreadsheet,
+        spreadsheet: gspread.Spreadsheet | str,
         worksheet_id: str | int = None,
         worksheet_name: str = None,
         worksheet_index: int = None,
+        **kwargs,
     ) -> gspread.Worksheet:
         """Get a worksheet by ID or name (provide one).
 
         Args:
-            spreadsheet (gspread.Spreadsheet): The spreadsheet object.
+            spreadsheet (gspread.Spreadsheet | str): The gspread spreadsheet object or, spreadsheet ID or spreadsheet name.
             worksheet_id (str | int): The ID of the worksheet.
             worksheet_name (str): The name of the worksheet.
             worksheet_index (int): The index of the worksheet.
 
+        Keyword Args:
+            assume_spreadsheet_id (bool): Whether to assume the provided "spreadsheet", when it's a string, is a spreadsheet ID or spreadsheet name. Defaults to True.
+
         Returns:
             The worksheet object.
         """
+        # Verify spreadsheet was provided
+        spreadsheet = self.__verify_spreadsheet_was_provided(spreadsheet, **kwargs)
+
+        # Get and return the worksheet
         return self.__get_worksheet(spreadsheet, worksheet_id, worksheet_name, worksheet_index)
+
+    def get_list_of_worksheets(
+        self, spreadsheet: gspread.Spreadsheet, exclude_hidden_worksheets: bool = False, **kwargs
+    ) -> list[gspread.Worksheet]:
+        """Get a list of worksheets from a spreadsheet.
+
+        Args:
+            spreadsheet (gspread.Spreadsheet): The spreadsheet object.
+            exclude_hidden_worksheets (bool): Whether to exclude hidden worksheets.
+
+        Keyword Args:
+            assume_spreadsheet_id (bool): Whether to assume the provided "spreadsheet", when it's a string, is a spreadsheet ID or spreadsheet name. Defaults to True.
+
+        Returns:
+            A list of worksheet objects.
+        """
+        # Verify spreadsheet was provided
+        spreadsheet = self.__verify_spreadsheet_was_provided(spreadsheet, **kwargs)
+
+        # Get the list of worksheets
+        return spreadsheet.worksheets(exclude_hidden=exclude_hidden_worksheets)
