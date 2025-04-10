@@ -169,3 +169,67 @@ class DtkGspread:
         """
         return self.__get_spreadsheet(spreadsheet_id, spreadsheet_name, spreadsheet_url)
 
+    @retry(
+        wait=wait_exponential(multiplier=2, min=2, max=30),
+        stop=stop_after_attempt(5),
+        reraise=True,
+        # Only if it's valid gspread errors
+        # TODO: Possible improvement: Add a custom method that checks the error code and retries based on that so we don't retry on every error
+        retry=(
+            retry_if_not_exception_type(ValueError)
+            & retry_if_not_exception_type(TypeError)
+            & retry_if_not_exception_type(gspread.WorksheetNotFound)
+        ),
+    )
+    def __get_worksheet(
+        self,
+        spreadsheet: gspread.Spreadsheet,
+        worksheet_id: str | int = None,
+        worksheet_name: str = None,
+        worksheet_index: int = None,
+    ) -> gspread.Worksheet:
+        """Get a worksheet by ID, name or index.
+
+        Args:
+            spreadsheet (gspread.Spreadsheet): The spreadsheet object.
+            worksheet_id (str | int): The ID of the worksheet.
+            worksheet_name (str): The name of the worksheet.
+            worksheet_index (int): The index of the worksheet.
+
+        Returns:
+            The worksheet object.
+        """
+        # If worksheet_id is provided, use it
+        if worksheet_id:
+            spreadsheet.get_worksheet_by_id(int(worksheet_id))
+
+        # If worksheet_name is provided, use it
+        if worksheet_name:
+            spreadsheet.worksheet(worksheet_name)
+
+        # If worksheet_index is provided, use it
+        if worksheet_index:
+            spreadsheet.get_worksheet(worksheet_index)
+
+        # If none of the above are provided, raise an error
+        raise ValueError("No worksheet ID or name provided.")
+
+    def get_worksheet(
+        self,
+        spreadsheet: gspread.Spreadsheet,
+        worksheet_id: str | int = None,
+        worksheet_name: str = None,
+        worksheet_index: int = None,
+    ) -> gspread.Worksheet:
+        """Get a worksheet by ID or name (provide one).
+
+        Args:
+            spreadsheet (gspread.Spreadsheet): The spreadsheet object.
+            worksheet_id (str | int): The ID of the worksheet.
+            worksheet_name (str): The name of the worksheet.
+            worksheet_index (int): The index of the worksheet.
+
+        Returns:
+            The worksheet object.
+        """
+        return self.__get_worksheet(spreadsheet, worksheet_id, worksheet_name, worksheet_index)
