@@ -202,17 +202,17 @@ class DtkGspread:
         # If worksheet_id is provided, use it
         if worksheet_id:
             logging.debug("Worksheet ID provided: %s", ic(worksheet_id))
-            spreadsheet.get_worksheet_by_id(int(worksheet_id))
+            return spreadsheet.get_worksheet_by_id(int(worksheet_id))
 
         # If worksheet_name is provided, use it
         if worksheet_name:
             logging.debug("Worksheet name provided: %s", ic(worksheet_name))
-            spreadsheet.worksheet(worksheet_name)
+            return spreadsheet.worksheet(worksheet_name)
 
         # If worksheet_index is provided, use it
         if worksheet_index:
             logging.debug("Worksheet index provided: %s", ic(worksheet_index))
-            spreadsheet.get_worksheet(worksheet_index)
+            return spreadsheet.get_worksheet(worksheet_index)
 
         # If none of the above are provided, raise an error
         raise ValueError("No worksheet ID or name provided.")
