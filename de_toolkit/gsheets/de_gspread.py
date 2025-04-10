@@ -2,6 +2,7 @@
 
 import logging
 import random
+import string
 
 import gspread
 import vcr
@@ -288,3 +289,126 @@ class DtkGspread:
 
         # Get the list of worksheets
         return spreadsheet.worksheets(exclude_hidden=exclude_hidden_worksheets)
+
+    def __random_string_generator(
+        self, length: int = 5, prefix: str = None, suffix: str = None
+    ) -> str:
+        """Generate a random string of the specified length."""
+        characters = string.ascii_letters + string.digits
+
+        return (
+            (prefix if prefix else "")
+            + "".join(random.choice(characters) for i in range(length))
+            + (suffix if suffix else "")
+        )
+
+    def __unique_column_name_from_list(
+        self,
+        list_of_columns: list[str],
+        list_for_unique_cols: list[str] | None,
+        string_as_suffix: bool,
+    ) -> list[str]:
+        # TODO: Add docstirngs
+        processed_columns = []
+        for column in list_of_columns:
+            if list_for_unique_cols is not None and len(list_of_columns.count(column)) > len(
+                list_for_unique_cols
+            ):
+                raise ValueError(
+                    f"There are {len(list_of_columns.count(column))} columns with the same name but only {len(list_for_unique_suffixes)} unique suffixes provided."
+                )
+
+            if list_of_columns.count(column) == 1:
+                processed_columns.append(column)
+                continue
+
+            if list_for_unique_cols is None:
+                for unique_str in list_for_unique_cols:
+                    if string_as_suffix and f"{column}_{unique_str}" not in processed_columns:
+                        processed_columns.append(ic(f"{column}_{unique_str}"))
+                        break
+
+                    if not string_as_suffix and f"{unique_str}_{column}" not in processed_columns:
+                        processed_columns.append(ic(f"{unique_str}_{column}"))
+                        break
+
+                    continue
+
+            if string_as_suffix:
+                generated_str = self.__random_string_generator(
+                    prefix=None if string_as_suffix else column,
+                    suffix=column if string_as_suffix else None,
+                )
+
+                # In the rare case that the generated string is already in the
+                # list of processed columns, generate a new string and repeat
+                # the process until a unique string is generated
+                while generated_str in processed_columns:
+                    generated_str = self.__random_string_generator(
+                        prefix=None if string_as_suffix else column,
+                        suffix=column if string_as_suffix else None,
+                    )
+
+                processed_columns.append(ic(generated_str))
+                continue
+
+        # Return the processed columns
+        return processed_columns
+
+    def __get_worksheet_values(
+        self,
+        worksheet: gspread.Worksheet,
+        sheet_range: str = None,
+        major_dimension: str = "rows",
+        value_render_option: str = "formatted",
+        header: int | None = 1,
+        header_column_names: list[str] | None = None,
+        replace_empty_strings_with_none: bool = False,
+        suffixes_for_uniquifying_columns: list[str] | None = None,
+        random_string_as_suffix: bool = True,
+        **kwargs,
+    ) -> list[list]:
+        # TODO: Add docstrings
+        # If header is None the header_column_names must be provided
+        if header is None and header_column_names is None:
+            raise ValueError("Either header or header_column_names must be provided.")
+
+        # Major Dimension - Can be either "rows" or "columns"
+        major_dimension = gspread.utils.Dimension[major_dimension.lower()]
+
+        # Value Render Option - Can be either "formatted", "unformatted" or "formula"
+        value_render_option = gspread.utils.ValueRenderOption[value_render_option.lower()]
+
+        # Get the values from the worksheet
+        worksheet_data = worksheet.get(
+            range_name=sheet_range,
+            major_dimension=major_dimension,
+            value_render_option=value_render_option,
+            **kwargs,
+        )
+
+        # If replace_empty_strings_with_none is True, replace empty strings with None.
+        # For each list in the list of lists, replace empty strings with None
+        if replace_empty_strings_with_none:
+            logging.debug("Replacing empty strings with None")
+            for row in worksheet_data:
+                row = [None if cell_value == "" else cell_value for cell_value in row]
+
+        # Get header_columns as either worksheet_data[header] or header_column_names
+        header_columns = worksheet_data[header - 1] if header is not None else header_column_names
+        logging.debug("Header columns: %s", ic(header_columns))
+
+        # Ensure that the selected header has unique values
+        if len(set(header_columns)) != len(header_columns):
+            logging.info(
+                "Header column names are not unique, %s.",
+                "generating random column names"
+                if suffixes_for_uniquifying_columns is None
+                else "using provided list",
+            )
+            header_columns = self.__unique_column_name_from_list(
+                header_columns,
+                suffixes_for_uniquifying_columns,
+                random_string_as_suffix,
+            )
+            logging.debug("Uniqified header columns: %s", ic(header_columns))
