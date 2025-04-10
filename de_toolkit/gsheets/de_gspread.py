@@ -22,7 +22,7 @@ DEFAULT_CREDENTIAL_SCOPES = [
 ]
 
 
-class DtkGspread:
+class GSheets:
     """gspread Wrapper."""
 
     def __init__(

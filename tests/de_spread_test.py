@@ -2,7 +2,7 @@
 
 import pytest
 
-from de_toolkit.gsheets.de_gspread import DtkGspread
+from de_toolkit.gsheets.de_gspread import GSheets
 from dotenv import load_dotenv
 import os
 import gspread
@@ -11,7 +11,7 @@ import gspread
 load_dotenv()
 
 # Create a gspread client
-gc = DtkGspread(
+gc = GSheets(
     credentials=os.environ["DTK_GSPREAD_CREDENTAILS"],
     credentials_type="service_account",
     credential_scopes=[
@@ -24,13 +24,13 @@ gc = DtkGspread(
 def test_service_acc_invalid_credentials() -> None:
     """Test that the DtkGspread class raises an error when given invalid credentials."""
     with pytest.raises(ValueError, match="Invalid credential!"):
-        DtkGspread(credentials="")
+        GSheets(credentials="")
 
 
 def test_oauth_no_credentials() -> None:
     """Test that the DtkGspread class raises an error when given no credentials for OAuth."""
     with pytest.raises(TypeError):
-        DtkGspread(credentials="", credentials_type="oauth")
+        GSheets(credentials="", credentials_type="oauth")
 
 
 def test_empty_spreadsheet_id() -> None:
