@@ -297,9 +297,9 @@ class DtkGspread:
         characters = string.ascii_letters + string.digits
 
         return (
-            (prefix if prefix else "")
+            (prefix + "_" if prefix else "")
             + "".join(random.choice(characters) for i in range(length))
-            + (suffix if suffix else "")
+            + ("_" + suffix if suffix else "")
         )
 
     def __unique_column_name_from_list(
@@ -322,7 +322,7 @@ class DtkGspread:
                 processed_columns.append(column)
                 continue
 
-            if list_for_unique_cols is None:
+            if list_for_unique_cols is not None:
                 for unique_str in list_for_unique_cols:
                     if string_as_suffix and f"{column}_{unique_str}" not in processed_columns:
                         processed_columns.append(ic(f"{column}_{unique_str}"))
@@ -336,8 +336,8 @@ class DtkGspread:
 
             if string_as_suffix:
                 generated_str = self.__random_string_generator(
-                    prefix=None if string_as_suffix else column,
-                    suffix=column if string_as_suffix else None,
+                    prefix=column if string_as_suffix else None,
+                    suffix=None if string_as_suffix else column,
                 )
 
                 # In the rare case that the generated string is already in the
@@ -345,8 +345,8 @@ class DtkGspread:
                 # the process until a unique string is generated
                 while generated_str in processed_columns:
                     generated_str = self.__random_string_generator(
-                        prefix=None if string_as_suffix else column,
-                        suffix=column if string_as_suffix else None,
+                        prefix=column if string_as_suffix else None,
+                        suffix=None if string_as_suffix else column,
                     )
 
                 processed_columns.append(ic(generated_str))
