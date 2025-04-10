@@ -14,6 +14,7 @@ ic.configureOutput(includeContext=True)
 
 # ic.disable()
 
+DEFAULT_CREDENTIAL_TYPE = "service_account"
 DEFAULT_CREDENTIAL_SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive",
@@ -26,7 +27,7 @@ class DtkGspread:
     def __init__(
         self,
         credentials: str | list[str] | list[dict],
-        credentials_type: str = None,
+        credentials_type: str = DEFAULT_CREDENTIAL_TYPE,
         credential_scopes: list[str] = DEFAULT_CREDENTIAL_SCOPES,
         oauth_credentials_filename: str = None,
         oauth_authorized_user_filename: str = None,
@@ -34,11 +35,11 @@ class DtkGspread:
         """Initialize the gspread wrapper.
 
         Args:
-            credentials: The credentials to use for logging in.
-            credentials_type: The type of credentials to use. Can be "oauth" or "service_account".
-            credential_scopes: The scopes to use for the credentials.
-            oauth_credentials_filename: The path to the OAuth credentials file.
-            oauth_authorized_user_filename: The path to the authorized user file.
+            credentials (str | list[str] | list[dict]): The credentials to use for logging in.
+            credentials_type (str): The type of credentials to use. Can be "oauth" or "service_account".
+            credential_scopes (list[str]): The scopes to use for the credentials.
+            oauth_credentials_filename (str): The path to the OAuth credentials file.
+            oauth_authorized_user_filename (str): The path to the authorized user file.
         """
         # We store logged-in clients in a list so that we can use
         # multiple accounts which helps with rate limiting trumendously
@@ -103,7 +104,7 @@ class DtkGspread:
         self.__selected_client = random.randint(0, len(self.__clients_cache) - 1)
 
         # Get the selected client
-        selected_client = self.__clients_cache[self.__selected_client]
+        selected_client: gspread.Client = self.__clients_cache[self.__selected_client]
 
         # Remove the selected client from the __clients_cache
         self.__clients_cache.pop(self.__selected_client)
@@ -128,9 +129,9 @@ class DtkGspread:
         """Get a spreadsheet by ID, name, or URL.
 
         Args:
-            spreadsheet_id: The ID of the spreadsheet.
-            spreadsheet_name: The name of the spreadsheet.
-            spreadsheet_url: The URL of the spreadsheet.
+            spreadsheet_id (str): The ID of the spreadsheet.
+            spreadsheet_name (str): The name of the spreadsheet.
+            spreadsheet_url (str): The URL of the spreadsheet.
 
         Returns:
             The spreadsheet object.
@@ -153,15 +154,18 @@ class DtkGspread:
         # If none of the above are provided, raise an error
         raise ValueError("No spreadsheet ID, name, or URL provided.")
 
-    def get_spreadsheet(self, spreadsheet_id, **kwargs) -> gspread.Spreadsheet:
+    def get_spreadsheet(
+        self, spreadsheet_id: str = None, spreadsheet_name: str = None, spreadsheet_url: str = None
+    ) -> gspread.Spreadsheet:
         """Get a spreadsheet by ID, name, or URL (provide one).
 
         Args:
-            spreadsheet_id: The ID of the spreadsheet.
-            spreadsheet_name: The name of the spreadsheet.
-            spreadsheet_url: The URL of the spreadsheet.
+            spreadsheet_id (str): The ID of the spreadsheet.
+            spreadsheet_name (str): The name of the spreadsheet.
+            spreadsheet_url (str): The URL of the spreadsheet.
 
         Returns:
             The spreadsheet object.
         """
-        return self.__get_spreadsheet(spreadsheet_id, **kwargs)
+        return self.__get_spreadsheet(spreadsheet_id, spreadsheet_name, spreadsheet_url)
+
