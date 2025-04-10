@@ -311,7 +311,7 @@ class GSheets:
         # TODO: Add docstirngs
         processed_columns = []
         for column in list_of_columns:
-            if list_for_unique_cols is not None and len(list_of_columns.count(column)) > len(
+            if list_for_unique_cols is not None and list_of_columns.count(column) > len(
                 list_for_unique_cols
             ):
                 raise ValueError(
@@ -333,6 +333,7 @@ class GSheets:
                         break
 
                     continue
+                continue
 
             if string_as_suffix:
                 generated_str = self.__random_string_generator(
